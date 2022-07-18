@@ -3,26 +3,31 @@ import { useState, useContext } from 'react';
 import GithubContext from '../../context/github/GithubContext';
 import AlertContext from '../../context/alert/AlertContext';
 
+import { searchUsers } from '../../context/github/githubActions';
+
 const UserSearch = () => {
   const [text, setText] = useState('');
 
-  const { users, searchUsers, clear } = useContext(GithubContext);
+  const { users, dispatch } = useContext(GithubContext);
   const { setAlert } = useContext(AlertContext);
 
   const changeHandler = (event) => setText(event.target.value);
 
-  const submitHandler = (event) => {
+  const submitHandler = async (event) => {
     event.preventDefault();
 
     if (text.trim() === '') {
       setAlert("You can't search for nobody...", 'error');
     } else {
-      searchUsers(text);
+      dispatch({ type: 'SET_LOADING' });
+
+      const users = await searchUsers(text);
+      dispatch({ type: 'GET_USERS', payload: users });
     }
   };
 
   const clearHandler = () => {
-    clear();
+    dispatch({ type: 'CLEAR_USERS' });
   };
 
   return (
