@@ -5,10 +5,13 @@ import githubReducer from './githubReducer';
 const initialState = {
   users: [],
   user: {},
+  repos: [],
   isLoading: false,
   searchUsers: (text) => {},
   getUser: (login) => {},
+  getUserRepos: (login) => {},
   clear: () => {},
+  resetUser: () => {},
 };
 
 const GithubContext = createContext(initialState);
@@ -59,7 +62,40 @@ export const GithubProvider = ({ children }) => {
     }
   };
 
+  const getUserRepos = async (login) => {
+    setLoading();
+
+    const params = new URLSearchParams({
+      per_page: 10,
+    });
+
+    const response = await fetch(
+      `${GITHUB_URL}/users/${login}/repos?${params}`,
+      {
+        headers: {
+          Authorization: `token ${GITHUB_TOKEN}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    const sortedData = data.sort((a, b) => {
+      if (a.stargazers_count > b.stargazers_count) {
+        return -1;
+      } else if (a.stargazers_count < b.stargazers_count) {
+        return 1;
+      }
+
+      return 0;
+    });
+
+    dispatch({ type: 'GET_USER_REPOS', payload: sortedData });
+  };
+
   const clear = () => dispatch({ type: 'CLEAR_USERS' });
+
+  const resetUser = () => dispatch({ type: 'RESET_USER' });
 
   const context = {
     users: state.users,
@@ -68,6 +104,9 @@ export const GithubProvider = ({ children }) => {
     clear,
     getUser,
     user: state.user,
+    repos: state.repos,
+    getUserRepos,
+    resetUser,
   };
 
   return (

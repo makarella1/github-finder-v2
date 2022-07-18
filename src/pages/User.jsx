@@ -1,15 +1,25 @@
 import { useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
+import { FaUsers, FaHandshake, FaFolder, FaCubes } from 'react-icons/fa';
+
 import GithubContext from '../context/github/GithubContext';
+
 import Spinner from '../components/Layout/Spinner';
+import RepoList from '../components/Repos/RepoList';
 
 const User = () => {
   const { login } = useParams();
-  const { getUser, user, isLoading } = useContext(GithubContext);
+  const { getUser, user, isLoading, getUserRepos, repos, resetUser } =
+    useContext(GithubContext);
 
   useEffect(() => {
     getUser(login);
+    getUserRepos(login);
+
+    return () => {
+      resetUser();
+    };
   }, []);
 
   if (isLoading) {
@@ -27,11 +37,17 @@ const User = () => {
     location,
     blog,
     twitter_username,
+    followers,
+    following,
+    public_repos,
+    public_gists,
   } = user;
 
-  const websiteUrl = blog?.startsWith('http')
-    ? `http://${blog}`
-    : `https://${blog}`;
+  console.log(blog);
+
+  const websiteUrl = blog?.startsWith('http') ? blog : `https://${blog}`;
+
+  console.log(websiteUrl);
 
   return (
     <>
@@ -43,8 +59,8 @@ const User = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 md:gap-8">
-        <div className="mx-auto shadow-xl relative md-6 mb-8 md:mb-0">
+      <div className="grid grid-cols-1 md:grid-cols-3 mb-6 md:gap-8">
+        <div className="mx-auto shadow-xl relative">
           <figure>
             <img
               className="opacity-50 rounded-lg"
@@ -93,7 +109,13 @@ const User = () => {
             <div className="stat">
               <div className="stat-title">Website</div>
               <div className="stat-value text-lg md:text-sm xl:text-2xl">
-                {blog ? <a href={websiteUrl}>{blog}</a> : 'Not stated :('}
+                {blog ? (
+                  <a href={websiteUrl} target="_blank" rel="noreferrer">
+                    {blog}
+                  </a>
+                ) : (
+                  'Not stated :('
+                )}
               </div>
             </div>
 
@@ -116,6 +138,47 @@ const User = () => {
           </div>
         </div>
       </div>
+
+      <div className="w-full mb-6 py-5 rounded-lg shadow-lg bg-neutral stats stats-vertical lg:stats-horizontal">
+        <div className="stat">
+          <div className="stat-figure text-error ">
+            <FaUsers className="text-3xl md:text-5xl" />
+          </div>
+          <div className="stat-title pr-5">Followers</div>
+          <div className="stat-value text-3xl pr-5 md:text-4xl">
+            {followers}
+          </div>
+        </div>
+        <div className="stat">
+          <div className="stat-figure text-error">
+            <FaHandshake className="text-3xl md:text-5xl" />
+          </div>
+          <div className="stat-title pr-5">Following</div>
+          <div className="stat-value text-3xl pr-5 md:text-4xl">
+            {following}
+          </div>
+        </div>
+        <div className="stat">
+          <div className="stat-figure text-error">
+            <FaFolder className="text-3xl md:text-5xl" />
+          </div>
+          <div className="stat-title pr-5">Public Repos</div>
+          <div className="stat-value text-3xl pr-5 md:text-4xl">
+            {public_repos}
+          </div>
+        </div>
+        <div className="stat">
+          <div className="stat-figure text-error">
+            <FaCubes className="text-3xl md:text-5xl" />
+          </div>
+          <div className="stat-title pr-5">Public Gists</div>
+          <div className="stat-value text-3xl pr-5 md:text-4xl">
+            {public_gists}
+          </div>
+        </div>
+      </div>
+
+      <RepoList repos={repos} />
     </>
   );
 };
